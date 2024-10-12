@@ -1,5 +1,6 @@
 package com.example.product_management.service.product;
 
+import com.example.product_management.dto.ProductDto;
 import com.example.product_management.model.Category;
 import com.example.product_management.model.Product;
 import com.example.product_management.request.AddProductRequest;
@@ -22,4 +23,7 @@ public interface ProductI {
     Product updateProduct(ProductUpdateRequest request, Long productID);
 
 
+    List<ProductDto> getConvertedProduct(List<Product> product);
+
+    ProductDto convertToDto(Product product);
 }

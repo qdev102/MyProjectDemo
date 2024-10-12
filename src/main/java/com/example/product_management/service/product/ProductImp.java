@@ -1,22 +1,31 @@
 package com.example.product_management.service.product;
 
+import com.example.product_management.dto.ImagineDto;
+import com.example.product_management.dto.ProductDto;
 import com.example.product_management.exception.ProductNotFoundException;
 import com.example.product_management.model.Category;
+import com.example.product_management.model.Imagine;
 import com.example.product_management.model.Product;
 import com.example.product_management.repository.CategoryResponsitory;
+import com.example.product_management.repository.ImagineResponsitory;
 import com.example.product_management.repository.ProductReponsitory;
 import com.example.product_management.request.AddProductRequest;
 import com.example.product_management.request.ProductUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
-public class ProductImp implements ProductI{
-    private final   ProductReponsitory productReponsitory;
+public class ProductImp implements ProductI {
+    private final ProductReponsitory productReponsitory;
     private final CategoryResponsitory categoryResponsitory;
+    private final ModelMapper modelMapper;
+    private final ImagineResponsitory imageRepository;
+
 
     @Override
     public List<Product> getAllProducts() {
@@ -56,7 +65,7 @@ public class ProductImp implements ProductI{
 
     @Override
     public Long countProductsByBrandAndName(String brand, String name) {
-        return productReponsitory.countByBrandAndName(brand,name);
+        return productReponsitory.countByBrandAndName(brand, name);
     }
 
     @Override
@@ -76,7 +85,7 @@ public class ProductImp implements ProductI{
         return productReponsitory.save(createProduct(rq, category));
     }
 
-    private Product createProduct(AddProductRequest request, Category category){
+    private Product createProduct(AddProductRequest request, Category category) {
         return new Product(
                 request.getName(),
                 request.getBrand(),
@@ -98,15 +107,17 @@ public class ProductImp implements ProductI{
     public void deleProductByID(Long id) {
         productReponsitory.findById(id)
                 .ifPresentOrElse(productReponsitory::delete,
-                        () -> {throw new ProductNotFoundException("product not found");});
+                        () -> {
+                            throw new ProductNotFoundException("product not found");
+                        });
     }
 
 
     @Override
-    public Product updateProduct(ProductUpdateRequest request , Long productID) {
+    public Product updateProduct(ProductUpdateRequest request, Long productID) {
         return productReponsitory.findById(productID)
                 .map(existingProduct -> updateExistingProduct(existingProduct, request))
-                .map(productReponsitory :: save)
+                .map(productReponsitory::save)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found"));
     }
 
@@ -119,8 +130,23 @@ public class ProductImp implements ProductI{
 
         Category category = categoryResponsitory.findByName(request.getCategory().getName());
         existingProduct.setCategory(category);
-        return  existingProduct;
+        return existingProduct;
 
+    }
+
+    @Override
+    public List<ProductDto> getConvertedProduct(List<Product> product){
+        return product.stream().map(this::convertToDto).toList();
+    }
+
+    @Override
+    public ProductDto convertToDto(Product product) {
+        ProductDto productDto = modelMapper.map(product, ProductDto.class);
+        List<Imagine> images = imageRepository.findByProductId(product.getId());
+        List<ImagineDto> imagineDtos = images.stream()
+                .map(imagine -> modelMapper.map(imagine, ImagineDto.class)).toList();
+        productDto.setImages(imagineDtos);
+        return productDto;
     }
 }
 
