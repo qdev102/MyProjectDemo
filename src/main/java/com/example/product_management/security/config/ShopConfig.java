@@ -1,4 +1,4 @@
-package com.example.product_management.config;
+package com.example.product_management.security.config;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
