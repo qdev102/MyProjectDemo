@@ -9,7 +9,8 @@ import com.example.product_management.model.User;
 import com.example.product_management.request.CreateUserRequest;
 import com.example.product_management.request.UpdateUserRequest;
 import com.example.product_management.response.ApiResponse;
-import com.example.product_management.service.user.UserI;
+import com.example.product_management.service.UserService;
+//import com.example.product_management.service.user.UserI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @RestController
 @RequestMapping("${api.prefix}/users")
 public class UserController {
-    private final UserI userService;
+    private final UserService userService;
 
 
     @GetMapping("/all")

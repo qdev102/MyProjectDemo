@@ -24,6 +24,7 @@ public class Role {
     }
 
     @ManyToMany(mappedBy = "roles")
-    private Collection<User> users = new HashSet<>();
+    private java.util.Collection<User> users = new HashSet<>();
 
 }
+

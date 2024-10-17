@@ -1,7 +1,8 @@
-package com.example.product_management.security.user;
+package com.example.product_management.service;
 
 import com.example.product_management.model.User;
 import com.example.product_management.repository.UserRepository;
+import com.example.product_management.security.user.ShopUserDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

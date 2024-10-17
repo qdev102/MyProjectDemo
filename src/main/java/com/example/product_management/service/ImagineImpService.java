@@ -1,12 +1,12 @@
-package com.example.product_management.service.imagine;
+package com.example.product_management.service;
 
 import com.example.product_management.dto.ImagineDto;
 import com.example.product_management.exception.ResourceNotFoundException;
 import com.example.product_management.model.Imagine;
 import com.example.product_management.model.Product;
 import com.example.product_management.repository.ImagineResponsitory;
-import com.example.product_management.service.product.ProductI;
-import com.example.product_management.service.product.ProductImp;
+import com.example.product_management.repository.ProductReponsitory;
+//import com.example.product_management.service.product.ProductI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,25 +19,24 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ImagineImp implements ImagineI {
+public class ImagineImpService{
     private final ImagineResponsitory imagineResponsitory;
-    private final ProductI productIService;
+    private final ProductReponsitory productRepository;
+  //  private final ProductI productIService;
 
-    @Override
     public Imagine getImageById(Long id) {
         return imagineResponsitory.findById(id).orElseThrow(() -> new ResourceNotFoundException("No imagine with id: " + id));
     }
 
-    @Override
     public void deleteImagineById(Long id) {
         imagineResponsitory.findById(id).ifPresentOrElse(imagineResponsitory::delete, () -> {
             throw new ResourceNotFoundException("No imagine found with id: " + id);
         });
     }
 
-    @Override
     public List<ImagineDto> saveImagine(List<MultipartFile> file, Long productId) {
-        Product product = productIService.getProductById(productId);
+        Product product =  productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("No product with id: " + productId));
         List<ImagineDto> saveImagineDto = new ArrayList<>();
         for (MultipartFile file1 : file) {
             try {
@@ -69,7 +68,6 @@ public class ImagineImp implements ImagineI {
         return saveImagineDto;
     }
 
-    @Override
     public void updateImagine(MultipartFile file, Long imagineID) {
         Imagine imagine = getImageById(imagineID);
         try {

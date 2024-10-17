@@ -1,18 +1,24 @@
-package com.example.product_management.service.product;
+package com.example.product_management.service;
 
 import com.example.product_management.dto.ImagineDto;
 import com.example.product_management.dto.ProductDto;
+import com.example.product_management.exception.AlreadyExitException;
 import com.example.product_management.exception.ProductNotFoundException;
 import com.example.product_management.model.Category;
 import com.example.product_management.model.Imagine;
 import com.example.product_management.model.Product;
 import com.example.product_management.repository.CategoryResponsitory;
 import com.example.product_management.repository.ImagineResponsitory;
+import com.example.product_management.repository.ProductPageRespone;
 import com.example.product_management.repository.ProductReponsitory;
 import com.example.product_management.request.AddProductRequest;
 import com.example.product_management.request.ProductUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,29 +26,25 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ProductImp implements ProductI {
+public class ProductService {
     private final ProductReponsitory productReponsitory;
     private final CategoryResponsitory categoryResponsitory;
     private final ModelMapper modelMapper;
     private final ImagineResponsitory imageRepository;
 
 
-    @Override
     public List<Product> getAllProducts() {
         return productReponsitory.findAll();
     }
 
-    @Override
     public List<Product> getProductsByCategory(String category) {
         return productReponsitory.findByCategoryName(category);
     }
 
-    @Override
     public List<Product> getProductsByBrand(String brand) {
         return productReponsitory.findByBrand(brand);
     }
 
-    @Override
     public List<Product> getProductsByCategoryAndBrand(Category category, String brand) {
         return List.of();
     }
@@ -53,28 +55,27 @@ public class ProductImp implements ProductI {
 //        return productReponsitory.getProductsByCategoryAndBrand(category, brand);
 //    }
 
-    @Override
     public List<Product> getProductsByName(String name) {
         return productReponsitory.findByName(name);
     }
 
-    @Override
     public List<Product> getProductsByBrandAndName(String brand, String name) {
         return productReponsitory.findByBrandAndName(brand, name);
     }
 
-    @Override
     public Long countProductsByBrandAndName(String brand, String name) {
         return productReponsitory.countByBrandAndName(brand, name);
     }
 
-    @Override
     public Product addProduct(AddProductRequest rq) {
         //check if category found in DB
         //if yes , set is as new in DB
         //if no, save it like a new category
         //the set as new product cate
-
+        if (productExists(rq.getName(), rq.getBrand())) {
+            throw new AlreadyExitException(rq.getBrand() + " "
+                    + rq.getName() + " already exists, you may update this product instead!");
+        }
         Category category = Optional.ofNullable(categoryResponsitory.findByName(rq.getCategory().getName()))
                 .orElseGet(() ->
                 {
@@ -84,7 +85,9 @@ public class ProductImp implements ProductI {
         rq.setCategory(category);
         return productReponsitory.save(createProduct(rq, category));
     }
-
+    private boolean productExists(String name, String brand) {
+        return productReponsitory.existsByNameAndBrand(name, brand);
+    }
     private Product createProduct(AddProductRequest request, Category category) {
         return new Product(
                 request.getName(),
@@ -96,24 +99,20 @@ public class ProductImp implements ProductI {
         );
     }
 
-    @Override
     public Product getProductById(Long id) {
         return productReponsitory.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found"));
     }
 
 
-    @Override
     public void deleProductByID(Long id) {
-        productReponsitory.findById(id)
-                .ifPresentOrElse(productReponsitory::delete,
-                        () -> {
-                            throw new ProductNotFoundException("product not found");
-                        });
+        if (!productReponsitory.existsById(id)) {
+            throw new ProductNotFoundException("product not found");
+        }
+        productReponsitory.deleteById(id);
     }
 
 
-    @Override
     public Product updateProduct(ProductUpdateRequest request, Long productID) {
         return productReponsitory.findById(productID)
                 .map(existingProduct -> updateExistingProduct(existingProduct, request))
@@ -134,12 +133,10 @@ public class ProductImp implements ProductI {
 
     }
 
-    @Override
-    public List<ProductDto> getConvertedProduct(List<Product> product){
+    public List<ProductDto> getConvertedProduct(List<Product> product) {
         return product.stream().map(this::convertToDto).toList();
     }
 
-    @Override
     public ProductDto convertToDto(Product product) {
         ProductDto productDto = modelMapper.map(product, ProductDto.class);
         List<Imagine> images = imageRepository.findByProductId(product.getId());
@@ -149,7 +146,32 @@ public class ProductImp implements ProductI {
         return productDto;
     }
 
-//
+    public ProductPageRespone getAllProductsWithPagination(int pageNumber, int pageSize) {
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        Page<Product> productPage = productReponsitory.findAll(pageable);
+        List<ProductDto> productDto = getConvertedProduct(productPage.getContent());
+
+        return new ProductPageRespone(productDto, pageNumber, pageSize,
+                productPage.getTotalPages(),
+                (int) productPage.getTotalElements(),
+                productPage.isLast());
+    }
+
+    public ProductPageRespone getAllProductsWithPaginationAndSorting(int pageNumber, int pageSize, String sortBy,
+                                                                     String dir) {
+        Sort sort = dir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        Page<Product> productPage = productReponsitory.findAll(pageable);
+        List<ProductDto> productDto = getConvertedProduct(productPage.getContent());
+
+        return new ProductPageRespone(productDto, pageNumber, pageSize,
+                productPage.getTotalPages(),
+                (int) productPage.getTotalElements(),
+                productPage.isLast());
+    }
 }
-
-

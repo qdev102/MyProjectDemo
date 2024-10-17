@@ -5,7 +5,8 @@ import com.example.product_management.exception.ResourceNotFoundException;
 import com.example.product_management.model.Imagine;
 import com.example.product_management.model.Product;
 import com.example.product_management.response.ApiResponse;
-import com.example.product_management.service.imagine.ImagineI;
+import com.example.product_management.service.ImagineImpService;
+//import com.example.product_management.service.imagine.ImagineI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -26,7 +27,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RestController
 @RequestMapping("${api.prefix}/imagine")
 public class ImagineController {
-    private final ImagineI imagineservice;
+    private final ImagineImpService imagineservice;
 
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse> saveImagine(@RequestParam List<MultipartFile> files, @RequestParam Long productId) {

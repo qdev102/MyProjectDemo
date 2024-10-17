@@ -1,4 +1,4 @@
-package com.example.product_management.service.user;
+package com.example.product_management.service;
 
 import com.example.product_management.dto.UserDto;
 import com.example.product_management.exception.ResourceNotFoundException;
@@ -15,21 +15,18 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserImp implements UserI{
+public class UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
-    @Override
     public List<User> getAllUser() {
         return userRepository.findAll();
     }
 
-    @Override
     public User getUserById(Long userId) {
         return  userRepository .findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found!!"));
     }
-    @Override
     public User createUser(CreateUserRequest request) {
         return  Optional.of(request)
                 .filter(user -> !userRepository.existsByEmail(request.getEmail()))
@@ -43,7 +40,6 @@ public class UserImp implements UserI{
                 }) .orElseThrow(() -> new ResourceNotFoundException("Oops!" +request.getEmail() +" already exists!"));
     }
 
-    @Override
     public User updateUser(UpdateUserRequest request, Long userId) {
         return userRepository.findById(userId).map(existingUser -> {
             existingUser.setFirstName(request.getFirstName());
@@ -52,14 +48,12 @@ public class UserImp implements UserI{
         }).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
-    @Override
     public void deleteUser(Long userId) {
     userRepository.findById(userId).ifPresentOrElse(userRepository :: delete, () -> {
         throw new ResourceNotFoundException("User not found");
     });
     }
 
-    @Override
     public UserDto convertUserToDto(User user) {
         return modelMapper.map(user, UserDto.class);
     }

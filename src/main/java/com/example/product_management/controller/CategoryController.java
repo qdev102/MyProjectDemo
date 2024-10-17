@@ -3,7 +3,8 @@ package com.example.product_management.controller;
 import com.example.product_management.exception.ResourceNotFoundException;
 import com.example.product_management.model.Category;
 import com.example.product_management.response.ApiResponse;
-import com.example.product_management.service.category.CategoryI;
+import com.example.product_management.service.Categoryservice;
+//import com.example.product_management.service.category.CategoryI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ import static org.springframework.http.HttpStatus.*;
 
 public class CategoryController {
 
-    private final CategoryI categoryService;
+    private final Categoryservice categoryService;
     @GetMapping("/all")
     public ResponseEntity<ApiResponse> getAllCategories(){
         try {

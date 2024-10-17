@@ -3,13 +3,18 @@ package com.example.product_management.controller;
 import com.example.product_management.dto.ProductDto;
 import com.example.product_management.exception.ResourceNotFoundException;
 import com.example.product_management.model.Product;
+import com.example.product_management.repository.ProductPageRespone;
+import com.example.product_management.repository.ProductReponsitory;
 import com.example.product_management.request.AddProductRequest;
 import com.example.product_management.request.ProductUpdateRequest;
 import com.example.product_management.response.ApiResponse;
-import com.example.product_management.service.category.CategoryI;
-import com.example.product_management.service.product.ProductI;
+import com.example.product_management.service.ProductService;
+//import com.example.product_management.service.category.CategoryI;
+//import com.example.product_management.service.product.ProductI;
+import com.example.product_management.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,13 +29,34 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RequestMapping("${api.prefix}/products")
 
 public class ProductController {
-    private final ProductI productService;
+    private final ProductService productService; // Thay ProductI bằng ProductService
 
     @GetMapping("/all")
     public ResponseEntity<ApiResponse> getAllProducts() {
         List<Product> products = productService.getAllProducts();
         List<ProductDto> convertedProduct = productService.getConvertedProduct(products);
         return ResponseEntity.ok(new ApiResponse("success", products));
+    }
+
+
+    @GetMapping("/allProductsPage")
+    public ResponseEntity<ApiResponse> getProductsWithPagination(
+            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) Integer pageSize
+    ){
+        ProductPageRespone productPageResponse = productService.getAllProductsWithPagination(pageNumber, pageSize);
+        return ResponseEntity.ok(new ApiResponse("Products found successfully", productPageResponse));
+    }
+
+    @GetMapping("/allProductsSort")
+    public ResponseEntity<ApiResponse> getProductsWithPaginationAndSorting(
+            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(defaultValue = AppConstants.SORT_BY, required = false) String sortBy,
+            @RequestParam(defaultValue = AppConstants.SORT_DIR, required = false) String dir
+    ){
+        ProductPageRespone productPageResponse = productService.getAllProductsWithPaginationAndSorting(pageNumber, pageSize,sortBy,dir);
+        return ResponseEntity.ok(new ApiResponse("Products found successfully", productPageResponse));
     }
 
     @GetMapping("products/{pid}/product")
@@ -45,6 +71,7 @@ public class ProductController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> addProduct(@RequestBody AddProductRequest product) {
         try {
@@ -54,7 +81,7 @@ public class ProductController {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(), null));
         }
     }
-
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("products/{productId}/update")
     public ResponseEntity<ApiResponse> updateProduct(@RequestBody ProductUpdateRequest request, @PathVariable Long productID) {
         try {
@@ -66,7 +93,7 @@ public class ProductController {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
         }
     }
-
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("products/{productId}/delete")
     public ResponseEntity<ApiResponse> deleteProduct(@PathVariable Long productId) {
         try {
