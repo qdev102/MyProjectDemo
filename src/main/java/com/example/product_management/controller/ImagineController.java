@@ -29,54 +29,37 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class ImagineController {
     private final ImagineImpService imagineservice;
 
+
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse> saveImagine(@RequestParam List<MultipartFile> files, @RequestParam Long productId) {
-        try {
-            List<ImagineDto> imagineDtos = imagineservice.saveImagine(files, productId);
-            return ResponseEntity.ok(new ApiResponse("Up loadsuccess", imagineDtos));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse("Upload Faild!", e.getMessage()));
-        }
-
+        List<ImagineDto> imagineDtos = imagineservice.saveImagine(files, productId);
+        return ResponseEntity.ok(new ApiResponse("Upload success", imagineDtos));
     }
 
-//    @GetMapping("/image/download/{imageId}")
-//    public ResponseEntity<Resource> downloadImage(@PathVariable Long imageId) throws SQLException {
-//        Imagine image = imagineservice.getImageById(imageId);
-//        ByteArrayResource resource = new ByteArrayResource(image.getImage().getBytes(1, (int) image.getImage().length()));
-//        return  ResponseEntity.ok().contentType(MediaType.parseMediaType(image.getFileType()))
-//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +image.getFileName() + "\"")
-//                .body(resource);
-//    }
+    @GetMapping("/image/download/{imageId}")
+    public ResponseEntity<Resource> downloadImage(@PathVariable Long imageId) throws SQLException {
+        Imagine image = imagineservice.getImageById(imageId);
+        ByteArrayResource resource = new ByteArrayResource(image.getImage().getBytes(1, (int) image.getImage().length()));
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(image.getFileType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + image.getFileName() + "\"")
+                .body(resource);
+    }
 
     @PutMapping("/image/{imageId}/update")
     public ResponseEntity<ApiResponse> updateImage(@PathVariable Long imageId, @RequestBody MultipartFile file) {
-        try {
-            Imagine image = imagineservice.getImageById(imageId);
-            if (image != null) {
-                imagineservice.updateImagine(file, imageId);
-                return ResponseEntity.ok(new ApiResponse("Update success!", null));
-            }
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
-        return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse("Update failed!", INTERNAL_SERVER_ERROR));
+        Imagine image = imagineservice.getImageById(imageId);
+        imagineservice.updateImagine(file, imageId);
+        return ResponseEntity.ok(new ApiResponse("Update success!", null));
     }
-
 
     @DeleteMapping("/image/{imageId}/delete")
     public ResponseEntity<ApiResponse> deleteImage(@PathVariable Long imageId) {
-        try {
-            Imagine image = imagineservice.getImageById(imageId);
-            if (image != null) {
-                imagineservice.deleteImagineById(imageId);
-                return ResponseEntity.ok(new ApiResponse("Delete success!", null));
-            }
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
-        return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse("Delete failed!", INTERNAL_SERVER_ERROR));
+        Imagine image = imagineservice.getImageById(imageId);
+        imagineservice.deleteImagineById(imageId);
+        return ResponseEntity.ok(new ApiResponse("Delete success!", null));
     }
 }
+
 
 

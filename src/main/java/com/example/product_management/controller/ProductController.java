@@ -34,18 +34,16 @@ public class ProductController {
     @GetMapping("/all")
     public ResponseEntity<ApiResponse> getAllProducts() {
         List<Product> products = productService.getAllProducts();
-        List<ProductDto> convertedProduct = productService.getConvertedProduct(products);
-        return ResponseEntity.ok(new ApiResponse("success", products));
+        List<ProductDto> convertedProducts = productService.getConvertedProduct(products);
+        return ResponseEntity.ok(new ApiResponse("success", convertedProducts));
     }
-
 
     @GetMapping("/allProductsPage")
     public ResponseEntity<ApiResponse> getProductsWithPagination(
             @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) Integer pageNumber,
-            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) Integer pageSize
-    ){
+            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) Integer pageSize) {
         ProductPageRespone productPageResponse = productService.getAllProductsWithPagination(pageNumber, pageSize);
-        return ResponseEntity.ok(new ApiResponse("Products found successfully", productPageResponse));
+        return ResponseEntity.ok(new ApiResponse(" successfully", productPageResponse));
     }
 
     @GetMapping("/allProductsSort")
@@ -53,117 +51,61 @@ public class ProductController {
             @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) Integer pageNumber,
             @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) Integer pageSize,
             @RequestParam(defaultValue = AppConstants.SORT_BY, required = false) String sortBy,
-            @RequestParam(defaultValue = AppConstants.SORT_DIR, required = false) String dir
-    ){
-        ProductPageRespone productPageResponse = productService.getAllProductsWithPaginationAndSorting(pageNumber, pageSize,sortBy,dir);
-        return ResponseEntity.ok(new ApiResponse("Products found successfully", productPageResponse));
+            @RequestParam(defaultValue = AppConstants.SORT_DIR, required = false) String dir) {
+        ProductPageRespone productPageResponse = productService.getAllProductsWithPaginationAndSorting(pageNumber, pageSize, sortBy, dir);
+        return ResponseEntity.ok(new ApiResponse("successfully", productPageResponse));
     }
 
     @GetMapping("products/{pid}/product")
-    public ResponseEntity<ApiResponse> getProductByID(@PathVariable Long pid) {
-        try {
-            Product product = productService.getProductById(pid);
-            ProductDto productDto = productService.convertToDto(product);
-
-            return ResponseEntity.ok(new ApiResponse("Found!!", product));
-        } catch (Exception e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse> getProductByID(@PathVariable Long pid) throws ResourceNotFoundException {
+        Product product = productService.getProductById(pid);
+        ProductDto productDto = productService.convertToDto(product);
+        return ResponseEntity.ok(new ApiResponse("Found!!", productDto));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> addProduct(@RequestBody AddProductRequest product) {
-        try {
-            Product theproduct = productService.addProduct(product);
-            return ResponseEntity.ok(new ApiResponse("Add product success!!", theproduct));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(), null));
-        }
+        Product theProduct = productService.addProduct(product);
+        return ResponseEntity.ok(new ApiResponse("Add product success!!", theProduct));
     }
+
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("products/{productId}/update")
-    public ResponseEntity<ApiResponse> updateProduct(@RequestBody ProductUpdateRequest request, @PathVariable Long productID) {
-        try {
-            Product theproduct = productService.updateProduct(request, productID);
-            ProductDto productDto = productService.convertToDto(theproduct);
-
-            return ResponseEntity.ok(new ApiResponse("Update product success", theproduct));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse> updateProduct(@RequestBody ProductUpdateRequest request, @PathVariable Long productId) throws ResourceNotFoundException {
+        Product theProduct = productService.updateProduct(request, productId);
+        ProductDto productDto = productService.convertToDto(theProduct);
+        return ResponseEntity.ok(new ApiResponse("Update product success", productDto));
     }
+
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("products/{productId}/delete")
-    public ResponseEntity<ApiResponse> deleteProduct(@PathVariable Long productId) {
-        try {
-            productService.deleProductByID(productId);
-            return ResponseEntity.ok(new ApiResponse("Delete product success!", productId));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse> deleteProduct(@PathVariable Long productId) throws ResourceNotFoundException {
+        productService.deleProductByID(productId);
+        return ResponseEntity.ok(new ApiResponse("Delete product success!", productId));
     }
 
-//    @GetMapping("/products/by/brand-and-name")
-//    public ResponseEntity<ApiResponse> getProductByBrandName(@RequestParam String brandName, @RequestParam String productName){
-//        try {
-//            List<Product> products = productService.getProductsByCategoryAndBrand(brandName, productName );
-//            if (products.isEmpty()) {
-//                return ResponseEntity.status(NOT_FOUND).body(new ApiResponse("No products found ", null));
-//            }
-//            return  ResponseEntity.ok(new ApiResponse("success", products));
-//        } catch (Exception e) {
-//            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(), null));
-//        }
-//    }
-
     @GetMapping("/products/{name}/products")
-    public ResponseEntity<ApiResponse> getProductByName(@PathVariable String name){
-        try {
-            List<Product> products = productService.getProductsByName(name);
-            if (products.isEmpty()) {
-                return ResponseEntity.status(NOT_FOUND).body(new ApiResponse("No products found ", null));
-            }
-            return  ResponseEntity.ok(new ApiResponse("success", products));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiResponse> getProductByName(@PathVariable String name) {
+        List<Product> products = productService.getProductsByName(name);
+        return ResponseEntity.ok(new ApiResponse("success", products));
     }
 
     @GetMapping("/product/by-brand")
     public ResponseEntity<ApiResponse> findProductByBrand(@RequestParam String brand) {
-        try {
-            List<Product> products = productService.getProductsByBrand(brand);
-            if (products.isEmpty()) {
-                return ResponseEntity.status(NOT_FOUND).body(new ApiResponse("No products found ", null));
-            }
-            return  ResponseEntity.ok(new ApiResponse("success", products));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new ApiResponse(e.getMessage(), null));
-        }
+        List<Product> products = productService.getProductsByBrand(brand);
+        return ResponseEntity.ok(new ApiResponse("success", products));
     }
 
     @GetMapping("/product/{category}/all/products")
     public ResponseEntity<ApiResponse> findProductByCategory(@PathVariable String category) {
-        try {
-            List<Product> products = productService.getProductsByCategory(category);
-            if (products.isEmpty()) {
-                return ResponseEntity.status(NOT_FOUND).body(new ApiResponse("No products found ", null));
-            }
-            return  ResponseEntity.ok(new ApiResponse("success", products));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new ApiResponse(e.getMessage(), null));
-        }
+        List<Product> products = productService.getProductsByCategory(category);
+        return ResponseEntity.ok(new ApiResponse("success", products));
     }
 
     @GetMapping("/product/count/by-brand/and-name")
     public ResponseEntity<ApiResponse> countProductsByBrandAndName(@RequestParam String brand, @RequestParam String name) {
-        try {
-            var productCount = productService.countProductsByBrandAndName(brand, name);
-            return ResponseEntity.ok(new ApiResponse("Product count!", productCount));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new ApiResponse(e.getMessage(), null));
-        }
+        var productCount = productService.countProductsByBrandAndName(brand, name);
+        return ResponseEntity.ok(new ApiResponse("Product count!", productCount));
     }
 }
-

@@ -8,6 +8,7 @@ import com.example.product_management.service.Categoryservice;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,62 +22,43 @@ import static org.springframework.http.HttpStatus.*;
 public class CategoryController {
 
     private final Categoryservice categoryService;
+
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> getAllCategories(){
-        try {
-            List<Category> categories = categoryService.getAllCategories();
-            return ResponseEntity.ok(new ApiResponse("Found!!", categories));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse("Error:", INTERNAL_SERVER_ERROR));
-        }
-    }
-    @GetMapping("/add")
-        public ResponseEntity<ApiResponse> addCategory(@RequestBody Category name){
-        try {
-            Category cate = categoryService.addCategory(name);
-            return ResponseEntity.ok(new ApiResponse("Success", cate));
-        } catch (Exception e) {
-            return ResponseEntity.status(CONFLICT).body(new ApiResponse("Error:", null));
-        }
-    }
-    @GetMapping("/category/{id}/category")
-    public ResponseEntity<ApiResponse> getCategoryById(@PathVariable Long id){
-        try {
-            Category cate = categoryService.getCategoryById(id);
-            return ResponseEntity.ok(new ApiResponse("Found!!", cate));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(new ApiResponse("Found!!", categories));
     }
 
-    @GetMapping("/category/{name}/category")
-    public ResponseEntity<ApiResponse> getCategoryByName(@PathVariable String name){
-        try {
-            Category cate = categoryService.getCategoryByName(name);
-            return ResponseEntity.ok(new ApiResponse("Found!!", cate));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/add")
+    public ResponseEntity<ApiResponse> addCategory(@RequestBody Category category) {
+        Category createdCategory = categoryService.addCategory(category);
+        return ResponseEntity.ok(new ApiResponse("Success", createdCategory));
     }
 
+    @GetMapping("/category/id/{id}")
+    public ResponseEntity<ApiResponse> getCategoryById(@PathVariable Long id) throws ResourceNotFoundException {
+        Category category = categoryService.getCategoryById(id);
+        return ResponseEntity.ok(new ApiResponse("Found!!", category));
+    }
+
+    @GetMapping("/category/name/{name}")
+    public ResponseEntity<ApiResponse> getCategoryByName(@PathVariable String name) throws ResourceNotFoundException {
+        Category categoris = categoryService.getCategoryByName(name);
+        return ResponseEntity.ok(new ApiResponse("Found", categoris));
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/category/{id}/delete")
-    public ResponseEntity<ApiResponse> deleteCategory(@PathVariable Long id){
-        try {
-            Category cate = categoryService.getCategoryById(id);
-            return ResponseEntity.ok(new ApiResponse("Found!!", cate));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategoryById(id); // Xoá category
+        return ResponseEntity.ok(new ApiResponse("Delete success!", id));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/category/{id}/update")
-    public ResponseEntity<ApiResponse> updateCategory(@PathVariable Long id, @RequestBody Category category) {
-        try {
-            Category updatedCategory = categoryService.updateCategory(category, id);
-            return ResponseEntity.ok(new ApiResponse("Update success!", updatedCategory));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse> updateCategory(@PathVariable Long id, @RequestBody Category category) throws ResourceNotFoundException {
+        Category updatedCategory = categoryService.updateCategory(category, id);
+        return ResponseEntity.ok(new ApiResponse("Update success!", updatedCategory));
     }
-
 }

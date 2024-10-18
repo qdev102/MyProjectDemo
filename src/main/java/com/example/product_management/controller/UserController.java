@@ -38,45 +38,29 @@ public class UserController {
     }
 
     @GetMapping("/{uId}/user")
-    public ResponseEntity<ApiResponse> getUserById(@PathVariable Long uId) {
-        try {
-            User user = userService.getUserById(uId);
-            return ResponseEntity.ok(new ApiResponse("success", user));
-        } catch (Exception e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse> getUserById(@PathVariable Long uId) throws ResourceNotFoundException {
+        User user = userService.getUserById(uId);
+        return ResponseEntity.ok(new ApiResponse("success", user));
     }
 
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> createUser(@RequestBody CreateUserRequest request) {
-        try {
-            User user = userService.createUser(request);
-            UserDto userDto = userService.convertUserToDto(user);
-            return ResponseEntity.ok(new ApiResponse("Create user succeefuly@", userDto));
-        } catch (Exception e) {
-            return ResponseEntity.status(CONFLICT).body(new ApiResponse(e.getMessage(), null));
-        }
+        User user = userService.createUser(request);
+        UserDto userDto = userService.convertUserToDto(user);
+        return ResponseEntity.ok(new ApiResponse("Create user successfully", userDto));
     }
 
     @PutMapping("/{userId}/update")
-    public ResponseEntity<ApiResponse> updateUser(@RequestBody UpdateUserRequest request, @PathVariable Long userId) {
-        try {
-            User user = userService.updateUser(request, userId);
-            UserDto userDto = userService.convertUserToDto(user);
-            return ResponseEntity.ok(new ApiResponse("Update User Success!", userDto));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse> updateUser(@RequestBody UpdateUserRequest request, @PathVariable Long userId) throws ResourceNotFoundException {
+        User user = userService.updateUser(request, userId);
+        UserDto userDto = userService.convertUserToDto(user);
+        return ResponseEntity.ok(new ApiResponse("Update User Success!", userDto));
     }
+
     @DeleteMapping("/{userId}/delete")
-    public ResponseEntity<ApiResponse> deleteUser(@PathVariable Long userId) {
-        try {
-            userService.deleteUser(userId);
-            return ResponseEntity.ok(new ApiResponse("Delete User Success!", null));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
+    public ResponseEntity<ApiResponse> deleteUser(@PathVariable Long userId) throws ResourceNotFoundException {
+        userService.deleteUser(userId);
+        return ResponseEntity.ok(new ApiResponse("Delete User Success!", null));
     }
 }
-
 

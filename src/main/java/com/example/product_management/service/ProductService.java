@@ -140,9 +140,10 @@ public class ProductService {
     public ProductDto convertToDto(Product product) {
         ProductDto productDto = modelMapper.map(product, ProductDto.class);
         List<Imagine> images = imageRepository.findByProductId(product.getId());
-        List<ImagineDto> imagineDtos = images.stream()
-                .map(imagine -> modelMapper.map(imagine, ImagineDto.class)).toList();
-        productDto.setImages(imagineDtos);
+        List<ImagineDto> imageDtos = images.stream()
+                .map(image -> modelMapper.map(image, ImagineDto.class))
+                .toList();
+        productDto.setImages(imageDtos);
         return productDto;
     }
 

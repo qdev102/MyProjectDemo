@@ -1,6 +1,8 @@
 package com.example.product_management.repository;
 
 import com.example.product_management.model.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -20,4 +22,6 @@ public interface ProductReponsitory extends JpaRepository<Product, Long> {
     Long countByBrandAndName(String brand, String name);
 
     boolean existsByNameAndBrand(String name, String brand);
+
+    Page<Product> findbyStatus(String status, Pageable pageable);
 }

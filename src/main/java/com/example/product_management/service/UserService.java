@@ -6,6 +6,7 @@ import com.example.product_management.model.User;
 import com.example.product_management.repository.UserRepository;
 import com.example.product_management.request.CreateUserRequest;
 import com.example.product_management.request.UpdateUserRequest;
+import com.example.product_management.util.DataUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-
+    private final DataUtil dataUtil;
     public List<User> getAllUser() {
         return userRepository.findAll();
     }
@@ -30,6 +31,8 @@ public class UserService {
     public User createUser(CreateUserRequest request) {
         return  Optional.of(request)
                 .filter(user -> !userRepository.existsByEmail(request.getEmail()))
+                .filter(user -> DataUtil.isValidEmail(request.getEmail()))
+                .filter(user -> DataUtil.isNullOrZero(request.getEmail()))
                 .map(req -> {
                     User user = new User();
                     user.setEmail(request.getEmail());
